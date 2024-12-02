@@ -23,23 +23,24 @@ while ($data = mysqli_fetch_assoc($queryPaket)) {
 $queryTransPickup = mysqli_query($koneksi, "SELECT * FROM trans_laundry_pickup WHERE id_order ='$id'");
 
 if (isset($_POST['simpan_transaksi'])) {
-    $id_customer   = $_POST['id_customer'];
-    $id_order   = $_POST['id_order'];
+    $id_customer = $_POST['id_customer'];
+    $id_order = $_POST['id_order'];
+    $order_pay = $_POST['order_pay'];
+    $order_change = $_POST['order_change'];
 
+    $pickup_date = date("Y-m-d");
 
-    $pickup_date = date('Y-m-d');
+    // insert ke table trans_laundry_pickup
+    $insert =  mysqli_query($koneksi, "INSERT INTO trans_laundry_pickup (id_order, id_customer, pickup_date) 
+    VALUES ('$id_order','$id_customer', '$pickup_date')");
 
-    // // mengambil nilai lebih dari satu, looping dengan foreach
-    // $id_service   = $_POST['id_service'];
-
-    $insertPickup = mysqli_query($koneksi, "INSERT INTO trans_laundry_pickup (id_customer, id_order, pickup_date) VALUES ('$id_customer', '$id_order', '$pickup_date')");
-
-
-    // ubah status order jadi 1 / sudah diambil
-    $updateTransOrder = mysqli_query($koneksi, "UPDATE trans_order SET order_status =1 WHERE id ='$id_order'");
+    // ubah status order jadi satu=sudah diambil
+    $updateTransOrder = mysqli_query($koneksi, "UPDATE trans_order SET order_pay = '$order_pay', 
+        order_change = '$order_change',  order_status = 1  WHERE id = '$id_order'");
 
     header("location:order.php?tambah=berhasil");
 }
+
 
 // No Invoice
 // 001, jika ada auto increment id = 1 = 002, selain itu 001
@@ -230,9 +231,9 @@ if (mysqli_num_rows($queryInvoice) > 0) {
                                                                 <strong>
                                                                     <?php if (mysqli_num_rows($queryTransPickup)): ?>
                                                                         <?php $rowTransPickup = mysqli_fetch_assoc($queryTransPickup); ?>
-                                                                        <input type="text" name="pickup_pay" placeholder="Dibayar" class="form-control" value="<?php echo "Rp " . number_format($rowTransPickup['pickup_pay']) ?>" readonly>
+                                                                        <input type="text" name="order_pay" placeholder="Dibayar" class="form-control" value="<?php echo "Rp " . number_format($rowTransPickup['order_pay']) ?>" readonly>
                                                                     <?php else: ?>
-                                                                        <input type="text" name="pickup_pay" placeholder="Dibayar" class="form-control" value="<?php echo isset($_POST['pickup_pay']) ? $_POST['pickup_pay'] : '' ?>">
+                                                                        <input type="text" name="order_pay" placeholder="Dibayar" class="form-control" value="<?php echo isset($_POST['order_pay']) ? $_POST['order_pay'] : '' ?>">
                                                                     <?php endif ?>
                                                                 </strong>
                                                             </td>
@@ -244,7 +245,7 @@ if (mysqli_num_rows($queryInvoice) > 0) {
                                                             <?php
                                                             if (isset($_POST['proses_kembalian'])) {
                                                                 $total = $_POST['total'];
-                                                                $dibayar = $_POST['pickup_pay'];
+                                                                $dibayar = $_POST['order_pay'];
 
                                                                 $kembalian = 0;
                                                                 $kembalian = $dibayar - $total;
@@ -253,9 +254,9 @@ if (mysqli_num_rows($queryInvoice) > 0) {
                                                             <td>
                                                                 <strong>
                                                                     <?php if (mysqli_num_rows($queryTransPickup) > 0): ?>
-                                                                        <input type="text" name="pickup_change" placeholder="Kembalian" class="form-control" value="<?php echo "Rp " . number_format($rowTransPickup['pickup_change']) ?>" readonly>
+                                                                        <input type="text" name="order_change" placeholder="Kembalian" class="form-control" value="<?php echo "Rp " . number_format($rowTransPickup['order_change']) ?>" readonly>
                                                                     <?php else: ?>
-                                                                        <input type="text" name="pickup_change" placeholder="Kembalian" class="form-control" value="<?php echo isset($kembalian) ? $kembalian : 0 ?>" readonly>
+                                                                        <input type="text" name="order_change" placeholder="Kembalian" class="form-control" value="<?php echo isset($kembalian) ? $kembalian : 0 ?>" readonly>
                                                                     <?php endif ?>
                                                                     <input type="hidden" name="total" value="<?php echo $total ?>">
                                                                     <input type="hidden" name="id_customer" value="<?php echo $row[0]['id_customer'] ?>">
